@@ -1,3 +1,4 @@
+import { start } from 'repl';
 import * as vscode from 'vscode';
 
 const MINUTE = 60000;
@@ -22,12 +23,25 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() {};
 
 function setTimerDuration(): void {
-	let options:  vscode.InputBoxOptions = {title: "Время между зачилами", prompt: "введите время в минутах", value: "20"};
-    vscode.window.showInputBox(options).then((result) => {
+    vscode.window.showInputBox({
+        prompt: "How long?"
+        , placeHolder: "Enter time in minutes"
+        , validateInput: validateTimerInput        
+    }).then((result) => {
         let minutes = parseInt(result ?? "0");
         timerDuration = minutes;
         timerMinutesLeft = timerDuration;
+        startTimer();
     });
+}
+
+function validateTimerInput(value: any) {
+    let numericValue = parseInt(value);
+    if (isNaN(numericValue)) {
+        return 'Minutes has to be in the form of of a valid number';
+    } else {
+        return null;
+    }
 }
 
 async function startTimer(): Promise<void> {
@@ -55,12 +69,12 @@ async function updateTimer(): Promise<void> {
 	if (statusBarMessage) {
 		statusBarMessage.dispose();
 	}
-	statusBarMessage = vscode.window.setStatusBarMessage(`Зачил на Вязьме через ${timerMinutesLeft} мин`);
+	statusBarMessage = vscode.window.setStatusBarMessage(`timer: ${timerMinutesLeft}`);
 	timerMinutesLeft--;
 }
 
 async function showStopMessage(): Promise<void> {
     await killTimerProcess();
-    statusBarMessage = vscode.window.setStatusBarMessage("Пацаны, зачильтесь на Вязьме");
+    statusBarMessage = vscode.window.setStatusBarMessage("The time is up");
 }
 
